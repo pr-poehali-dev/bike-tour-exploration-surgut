@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 
 const HERO_IMG = "https://cdn.poehali.dev/projects/09ed16a7-04d1-460a-bcd1-273a8dc9185b/files/da7881aa-5d41-4dbb-9c94-11f5fa5d5612.jpg";
@@ -112,7 +113,7 @@ export default function Index() {
         <div className="hidden md:flex gap-8 text-sm font-medium text-foreground/70">
           <a href="#routes" className="hover:text-primary transition-colors">Маршруты</a>
           <a href="#booking" className="hover:text-primary transition-colors">Бронирование</a>
-          <a href="#reviews" className="hover:text-primary transition-colors">Отзывы</a>
+          <Link to="/reviews" className="hover:text-primary transition-colors">Отзывы</Link>
           <a href="#faq" className="hover:text-primary transition-colors">Вопросы</a>
         </div>
         <a
