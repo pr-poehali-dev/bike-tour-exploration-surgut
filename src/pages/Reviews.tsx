@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 
-const routes = ["Береговой путь", "Кедровый лес", "Большая петля"];
+const API_URL = "https://functions.poehali.dev/217b3352-2746-4b12-b6ec-3733cd3408ee";
+const TOUR_ROUTES = ["Береговой путь", "Кедровый лес", "Большая петля"];
 
 interface Review {
   id: number;
   name: string;
-  age: string;
+  age: number | null;
   tour: string;
   rating: number;
   text: string;
@@ -16,21 +17,57 @@ interface Review {
 
 export default function Reviews() {
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [form, setForm] = useState({ name: "", age: "", tour: routes[0], rating: 5, text: "" });
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+  const [form, setForm] = useState({ name: "", age: "", tour: TOUR_ROUTES[0], rating: 5, text: "" });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    fetch(API_URL)
+      .then((r) => r.json())
+      .then((data) => setReviews(data))
+      .catch(() => setError("Не удалось загрузить отзывы"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim() || !form.text.trim()) return;
-    const newReview: Review = {
-      id: Date.now(),
-      ...form,
-      date: new Date().toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" }),
-    };
-    setReviews((prev) => [newReview, ...prev]);
-    setForm({ name: "", age: "", tour: routes[0], rating: 5, text: "" });
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
+    setSending(true);
+    setError("");
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          age: form.age ? parseInt(form.age) : null,
+          tour: form.tour,
+          rating: form.rating,
+          text: form.text.trim(),
+        }),
+      });
+      if (!res.ok) throw new Error();
+      const { id } = await res.json();
+      const newReview: Review = {
+        id,
+        name: form.name.trim(),
+        age: form.age ? parseInt(form.age) : null,
+        tour: form.tour,
+        rating: form.rating,
+        text: form.text.trim(),
+        date: new Date().toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" }),
+      };
+      setReviews((prev) => [newReview, ...prev]);
+      setForm({ name: "", age: "", tour: TOUR_ROUTES[0], rating: 5, text: "" });
+      setSubmitted(true);
+      setTimeout(() => setSubmitted(false), 4000);
+    } catch {
+      setError("Не удалось отправить отзыв. Попробуйте ещё раз.");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -66,7 +103,7 @@ export default function Reviews() {
           Что говорят<br /><em className="font-light">о наших турах</em>
         </h1>
         <p className="text-muted-foreground font-body text-lg max-w-xl">
-          Будьте первыми — поделитесь своими впечатлениями после поездки.
+          Поделитесь своими впечатлениями после поездки.
         </p>
       </section>
 
@@ -79,6 +116,13 @@ export default function Reviews() {
             <div className="mb-6 flex items-center gap-3 bg-secondary/10 border border-secondary/30 text-foreground rounded-lg px-5 py-4 animate-fade-in">
               <Icon name="CheckCircle" size={20} className="text-secondary flex-shrink-0" />
               <span className="font-body text-sm">Спасибо! Ваш отзыв опубликован.</span>
+            </div>
+          )}
+
+          {error && (
+            <div className="mb-6 flex items-center gap-3 bg-destructive/10 border border-destructive/30 text-destructive rounded-lg px-5 py-4">
+              <Icon name="AlertCircle" size={20} className="flex-shrink-0" />
+              <span className="font-body text-sm">{error}</span>
             </div>
           )}
 
@@ -112,7 +156,7 @@ export default function Reviews() {
             <div>
               <label className="block text-sm font-medium font-body text-foreground mb-2">Маршрут</label>
               <div className="grid grid-cols-3 gap-3">
-                {routes.map((r) => (
+                {TOUR_ROUTES.map((r) => (
                   <button
                     key={r}
                     type="button"
@@ -166,10 +210,14 @@ export default function Reviews() {
 
             <button
               type="submit"
-              className="w-full bg-primary text-primary-foreground font-body font-medium py-4 rounded text-base hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+              disabled={sending}
+              className="w-full bg-primary text-primary-foreground font-body font-medium py-4 rounded text-base hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <Icon name="Send" size={18} />
-              Опубликовать отзыв
+              {sending ? (
+                <><Icon name="Loader" size={18} className="animate-spin" /> Отправляем...</>
+              ) : (
+                <><Icon name="Send" size={18} /> Опубликовать отзыв</>
+              )}
             </button>
           </form>
         </div>
@@ -177,7 +225,12 @@ export default function Reviews() {
 
       {/* REVIEWS LIST */}
       <section className="pb-24 px-6 md:px-16 max-w-4xl mx-auto">
-        {reviews.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-20">
+            <Icon name="Loader" size={28} className="text-muted-foreground animate-spin mx-auto mb-3" />
+            <p className="text-muted-foreground font-body text-sm">Загружаем отзывы...</p>
+          </div>
+        ) : reviews.length === 0 ? (
           <div className="text-center py-20 border border-dashed border-border rounded-lg">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
               <Icon name="MessageSquare" size={24} className="text-muted-foreground" />

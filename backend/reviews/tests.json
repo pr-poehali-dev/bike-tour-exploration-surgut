@@ -1,0 +1,23 @@
+{
+  "tests": [
+    {
+      "name": "GET reviews (empty list)",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "POST review",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "name": "Тест Т.",
+        "age": 45,
+        "tour": "Береговой путь",
+        "rating": 5,
+        "text": "Отличный тур, очень понравилось!"
+      },
+      "expectedStatus": 201
+    }
+  ]
+}
