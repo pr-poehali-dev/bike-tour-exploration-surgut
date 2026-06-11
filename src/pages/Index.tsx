@@ -151,13 +151,13 @@ export default function Index() {
               <Icon name="Bike" size={20} />
               Выбрать тур
             </a>
-            <a
-              href="#routes"
-              className="inline-flex items-center gap-2 border border-white/40 text-white font-medium px-8 py-4 rounded hover:bg-white/10 transition-colors text-base"
+            <Link
+              to="/route"
+              className="inline-flex items-center gap-2 bg-white/15 border border-white/40 text-white font-medium px-8 py-4 rounded hover:bg-white/25 transition-colors text-base"
             >
-              Смотреть маршруты
-              <Icon name="ArrowRight" size={18} />
-            </a>
+              <Icon name="QrCode" size={18} />
+              Пройти квест
+            </Link>
           </div>
         </div>
 

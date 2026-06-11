@@ -1,0 +1,17 @@
+{
+  "tests": [
+    {
+      "name": "POST ?action=start — создать сессию",
+      "method": "POST",
+      "path": "/?action=start",
+      "body": {"name": "Тест", "route_slug": "surgut-river"},
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET ?action=point&id=1 — получить точку",
+      "method": "GET",
+      "path": "/?action=point&id=1",
+      "expectedStatus": 200
+    }
+  ]
+}
